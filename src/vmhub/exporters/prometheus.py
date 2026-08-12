@@ -64,21 +64,21 @@ class PrometheusExporter:
             telemetry.device.model or "unknown",
         )
 
-        _set(BATTERY.labels(*labels), telemetry.state.battery_pct)
-        _set(IS_CHARGING.labels(*labels), telemetry.state.is_charging)
+        _set(BATTERY, labels, telemetry.state.battery_pct)
+        _set(IS_CHARGING, labels, telemetry.state.is_charging)
         STATUS.labels(*labels, telemetry.state.status.value).set(1)
 
-        _set(SESSION_AREA.labels(*labels), telemetry.session.area_m2)
-        _set(SESSION_DURATION.labels(*labels), telemetry.session.duration_s)
-        _set(EFFICIENCY.labels(*labels), efficiency_m2_per_min(telemetry))
+        _set(SESSION_AREA, labels, telemetry.session.area_m2)
+        _set(SESSION_DURATION, labels, telemetry.session.duration_s)
+        _set(EFFICIENCY, labels, efficiency_m2_per_min(telemetry))
 
         for part in ConsumablePart:
             consumable = getattr(telemetry.consumables, part.value)
-            _set(CONSUMABLE_PCT.labels(*labels, part.value), consumable.remaining_pct)
-            _set(CONSUMABLE_HOURS.labels(*labels, part.value), consumable.remaining_h)
+            _set(CONSUMABLE_PCT, (*labels, part.value), consumable.remaining_pct)
+            _set(CONSUMABLE_HOURS, (*labels, part.value), consumable.remaining_h)
 
-        _set(DUST_COLLECTIONS.labels(*labels), telemetry.station.dust_collections)
-        _set(MOP_WASHES.labels(*labels), telemetry.station.mop_washes)
+        _set(DUST_COLLECTIONS, labels, telemetry.station.dust_collections)
+        _set(MOP_WASHES, labels, telemetry.station.mop_washes)
 
         if telemetry.fault:
             FAULT.labels(
@@ -93,6 +93,12 @@ class PrometheusExporter:
         LAST_SESSION_DURATION.labels(*labels).set(session.observed_duration_s)
 
 
-def _set(gauge: Gauge, value: float | bool | None) -> None:
+def _set(gauge: Gauge, labels: tuple[str, ...], value: float | bool | None) -> None:
+    """Set a labelled gauge, or leave the series absent entirely.
+
+    The labels are applied only when there is a value, because `.labels()` itself creates the
+    child series at 0 - which would turn "this vendor does not report a dust bag" into "this
+    vendor reports an empty dust bag".
+    """
     if value is not None:
-        gauge.set(float(value))
+        gauge.labels(*labels).set(float(value))

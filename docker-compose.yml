@@ -10,6 +10,8 @@ services:
       INFLUX_ORG: ${INFLUX_ORG:-vmhub}
       INFLUX_BUCKET: ${INFLUX_BUCKET:-vacuum}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # Set to 1 to run against simulated vacuums instead of Home Assistant.
+      VMHUB_DEMO: ${VMHUB_DEMO:-0}
     ports:
       - "9464:9464"
     volumes:

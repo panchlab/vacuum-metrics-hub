@@ -12,6 +12,7 @@ from vmhub.adapters.loader import AdapterRegistry
 from vmhub.exporters.influx import InfluxExporter
 from vmhub.exporters.prometheus import PrometheusExporter
 from vmhub.sessions import SessionTracker
+from vmhub.sources.demo import DemoSource
 from vmhub.sources.ha_ws import HomeAssistantWS
 
 log = logging.getLogger("vmhub")
@@ -28,9 +29,16 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--influx-org", default=os.environ.get("INFLUX_ORG", "vmhub"))
     parser.add_argument("--influx-bucket", default=os.environ.get("INFLUX_BUCKET", "vacuum"))
     parser.add_argument("--log-level", default=os.environ.get("LOG_LEVEL", "INFO"))
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        default=os.environ.get("VMHUB_DEMO") == "1",
+        help="Replay simulated vacuums instead of connecting to Home Assistant. "
+        "The data is invented; everything downstream of the source is the real pipeline.",
+    )
     args = parser.parse_args()
-    if not args.ha_url or not args.ha_token:
-        parser.error("HA_WS_URL and HA_TOKEN are required (or --ha-url / --ha-token)")
+    if not args.demo and (not args.ha_url or not args.ha_token):
+        parser.error("HA_WS_URL and HA_TOKEN are required (or --ha-url / --ha-token, or --demo)")
     return args
 
 
@@ -48,7 +56,13 @@ async def run(args: argparse.Namespace) -> None:
         else None
     )
 
-    source = HomeAssistantWS(args.ha_url, args.ha_token)
+    source: DemoSource | HomeAssistantWS
+    if args.demo:
+        log.warning("running in demo mode - the telemetry is simulated, not from real hardware")
+        source = DemoSource()
+    else:
+        source = HomeAssistantWS(args.ha_url, args.ha_token)
+
     tracker = SessionTracker()
     unmatched: set[str] = set()
     try:

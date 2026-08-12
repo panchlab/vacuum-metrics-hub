@@ -1,5 +1,9 @@
 # vacuum-metrics-hub
 
+[![ci](https://github.com/MrVlad001/vacuum-metrics-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/MrVlad001/vacuum-metrics-hub/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
+
 Vendor-agnostic telemetry and predictive maintenance for robot vacuums, built on top of
 [Home Assistant](https://www.home-assistant.io/).
 
@@ -105,6 +109,21 @@ docker compose up -d
 
 This starts `vmhub` (HA WebSocket source → adapters → Prometheus + InfluxDB exporters),
 Prometheus, InfluxDB, and a provisioned Grafana instance at `localhost:3000`.
+
+### Try it without a vacuum
+
+```bash
+VMHUB_DEMO=1 docker compose up -d
+```
+
+Demo mode replaces the Home Assistant source with a generator that simulates two vacuums over a
+week, so the dashboard fills in within a few minutes on a machine with no Home Assistant and no
+hardware. **The telemetry is invented** — but everything downstream of the source is the real
+pipeline: the real adapter, the real session tracker, the real exporters. It is there so you can
+see the shape of the thing before wiring up your own robot.
+
+It also earns its keep as a test: it was demo mode that caught the exporter publishing `0` for
+consumables the vendor never reports.
 
 ## Status
 
