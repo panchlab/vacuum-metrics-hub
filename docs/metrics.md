@@ -13,6 +13,30 @@ session with no reported area is not a session that cleaned zero square metres.
 
 Exported as `vmhub_efficiency_m2_per_min` (Prometheus) and `efficiency_m2_per_min` (InfluxDB).
 
+## Session records
+
+Point-in-time samples are not enough for degradation analysis, so vmhub also emits one record per
+cleaning run, written to the `vacuum_session` measurement in InfluxDB and counted as
+`vmhub_sessions_total` in Prometheus.
+
+A session is open while the status is `cleaning` or `mopping`; `paused` holds it open; anything
+else closes it. A robot that recharges mid-run therefore produces two records — see
+[ADR-0002](adr/0002-session-boundaries.md) for why that split is the honest one.
+
+| Field | Meaning |
+|---|---|
+| `started_at` / `ended_at` | first active sample, and the sample that closed the session |
+| `observed_duration_s` | wall clock measured by vmhub, bounded by HA's update cadence |
+| `ended_in` | the status that closed the session — `docked`, `error`, `charging`, … |
+| `area_at_start_m2` / `area_at_end_m2` | the vendor's own counter, read at both ends |
+| `vendor_duration_at_start_s` / `..._at_end_s` | likewise for the vendor's cleaning time |
+| `completed` | only if the vendor reports it; never inferred |
+
+**Why two area readings.** Whether a vendor's area attribute is a per-session gauge or a lifetime
+counter is not yet confirmed on real hardware. If it is a gauge, the session's area is
+`area_at_end_m2`; if it is a counter, it is the difference. Storing both readings means one real
+session settles the question, instead of a redesign.
+
 ## Planned (v0.4)
 
 These need history, which is why they wait for the time-series store to accumulate sessions.

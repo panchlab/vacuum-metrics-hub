@@ -89,6 +89,24 @@
           "legendFormat": "{{model}} / {{code}} ({{vendor_code}})"
         }
       ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Sessions per day, by how they ended",
+      "description": "A rising share of sessions ending anywhere other than docked means the robot is giving up more often. Note that a mid-run recharge closes a session (ADR-0002).",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 17 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" } } },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(vmhub_sessions_total[1d])",
+          "legendFormat": "{{model}} / {{ended_in}}"
+        }
+      ]
     }
   ]
 }

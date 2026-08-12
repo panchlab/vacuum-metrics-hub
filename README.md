@@ -38,6 +38,9 @@ Dreame / Roborock / Ecovacs / Roomba
    │  │ Canonical model v1     │ │
    │  └───────────┬────────────┘ │
    │  ┌───────────▼────────────┐ │
+   │  │ Session tracker        │ │   samples → one record per cleaning run
+   │  └───────────┬────────────┘ │
+   │  ┌───────────▼────────────┐ │
    │  │ Analytics engine       │ │   KPI / forecast / anomaly detection
    │  └───────────┬────────────┘ │
    └──────────────┼──────────────┘
@@ -70,6 +73,18 @@ can add support for their vacuum by copying [`adapters/_template.yaml`](adapters
 and opening a PR. See [CONTRIBUTING.md](CONTRIBUTING.md) and
 [docs/vendor-matrix.md](docs/vendor-matrix.md) for the current coverage per vendor.
 
+## Sessions
+
+Degradation analysis regresses over cleaning runs, not over samples, so vmhub tracks session
+boundaries and emits one record per run. The rule is one sentence: a session is open while the
+robot is `cleaning` or `mopping`, `paused` holds it open, anything else closes it.
+
+vmhub does not recompute area or duration — the vendor already reports both, and this is a
+normalization layer, not a reimplementation of the robot. What the tracker contributes is the
+*moment* to read those counters, before the robot resets them.
+[ADR-0002](docs/adr/0002-session-boundaries.md) covers the trade-offs, including what a mid-run
+recharge does to the record.
+
 ## Analytics
 
 | Metric | What it computes | Why it matters |
@@ -93,15 +108,18 @@ Prometheus, InfluxDB, and a provisioned Grafana instance at `localhost:3000`.
 
 ## Status
 
-v0.1: Home Assistant WebSocket source, Dreame adapter, Prometheus + InfluxDB exporters, Docker
-Compose. See the [roadmap](#roadmap) below for what's next.
+**Not yet validated against real hardware.** The pipeline runs and the test suite is green, but
+it has never been pointed at a live Home Assistant instance. The Dreame adapter's attribute names
+come from documentation rather than observation, and `tests/fixtures/dreame_x50_ultra.json` is a
+hand-written sample, not a capture. Until a real dump replaces it, treat the Dreame column of the
+[vendor matrix](docs/vendor-matrix.md) as unverified.
 
 ### Roadmap
 
 | Version | Scope |
 |---|---|
 | v0.1 | HA WebSocket source, Dreame adapter, Prometheus + InfluxDB exporters, Docker Compose |
-| v0.2 | Schema v1 frozen, Grafana dashboard, `_template.yaml` + CONTRIBUTING → public announcement |
+| v0.2 | Session tracking, schema v1 frozen, Grafana dashboard, `_template.yaml` + CONTRIBUTING → public announcement |
 | v0.3 | MQTT Discovery back into HA, community-contributed Roborock / Ecovacs adapters |
 | v0.4 | `efficiency_drift`, forecasting, anomaly detection + one-click HA add-on |
 | v1.0 | Stable API, schema documented as a standalone standard |

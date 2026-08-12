@@ -11,6 +11,7 @@ from pathlib import Path
 from vmhub.adapters.loader import AdapterRegistry
 from vmhub.exporters.influx import InfluxExporter
 from vmhub.exporters.prometheus import PrometheusExporter
+from vmhub.sessions import SessionTracker
 from vmhub.sources.ha_ws import HomeAssistantWS
 
 log = logging.getLogger("vmhub")
@@ -48,6 +49,7 @@ async def run(args: argparse.Namespace) -> None:
     )
 
     source = HomeAssistantWS(args.ha_url, args.ha_token)
+    tracker = SessionTracker()
     unmatched: set[str] = set()
     try:
         async for entity in source.stream():
@@ -66,6 +68,18 @@ async def run(args: argparse.Namespace) -> None:
             prometheus.publish(telemetry)
             if influx:
                 await influx.publish(telemetry)
+
+            session = tracker.observe(telemetry)
+            if session:
+                log.info(
+                    "session closed: %s ran %.0fs, ended in %s",
+                    session.device_id,
+                    session.observed_duration_s,
+                    session.ended_in.value,
+                )
+                prometheus.publish_session(session)
+                if influx:
+                    await influx.publish_session(session)
     finally:
         if influx:
             await influx.close()

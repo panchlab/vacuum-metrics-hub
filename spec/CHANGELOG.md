@@ -22,3 +22,9 @@ Until then, breaking changes may land without a major bump.
 - `station`: dust_collections, mop_washes, water_tank_low, dirty_water_full
 - `fault`: code_canonical, code_vendor, message
 - `raw`: the untouched source payload
+
+**Scope.** This schema describes a telemetry *snapshot* — the thing adapters produce and the
+thing a third-party implementation would need to interoperate. Session records (`SessionRecord`
+in `src/vmhub/sessions.py`) are derived by vmhub itself, never by an adapter, so they are
+documented in [docs/metrics.md](../docs/metrics.md) rather than frozen here. Whether they belong
+in the published spec is a v1.0 question, once real data has settled their shape.
