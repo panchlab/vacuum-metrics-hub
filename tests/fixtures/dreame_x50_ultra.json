@@ -1,0 +1,22 @@
+{
+  "entity_id": "vacuum.x50_ultra",
+  "state": "cleaning",
+  "platform": "dreame_vacuum",
+  "attributes": {
+    "friendly_name": "X50 Ultra",
+    "model": "dreame.vacuum.x50ultra",
+    "firmware_version": "3.5.9_1234",
+    "battery_level": 87,
+    "charging": false,
+    "cleaned_area": 42.6,
+    "cleaning_time": 38,
+    "filter_left": 64,
+    "main_brush_left": 71,
+    "side_brush_left": 55,
+    "sensor_dirty_left": 12,
+    "error": 0,
+    "error_description": "No error"
+  },
+  "last_changed": "2026-08-12T09:14:02.113000+00:00",
+  "last_updated": "2026-08-12T09:41:37.882000+00:00"
+}

@@ -1,0 +1,490 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/vacuum-metrics-hub/main/spec/vacuum-telemetry-v1.schema.json",
+  "$defs": {
+    "Capability": {
+      "enum": [
+        "vacuum",
+        "mop",
+        "self_empty",
+        "mop_wash",
+        "mop_dry",
+        "lift",
+        "climb"
+      ],
+      "title": "Capability",
+      "type": "string"
+    },
+    "Consumable": {
+      "additionalProperties": false,
+      "properties": {
+        "remaining_pct": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Remaining Pct"
+        },
+        "remaining_h": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Remaining H"
+        },
+        "replaced_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Replaced At"
+        }
+      },
+      "title": "Consumable",
+      "type": "object"
+    },
+    "Consumables": {
+      "additionalProperties": false,
+      "properties": {
+        "main_brush": {
+          "$ref": "#/$defs/Consumable"
+        },
+        "side_brush": {
+          "$ref": "#/$defs/Consumable"
+        },
+        "filter": {
+          "$ref": "#/$defs/Consumable"
+        },
+        "mop_pad": {
+          "$ref": "#/$defs/Consumable"
+        },
+        "sensors": {
+          "$ref": "#/$defs/Consumable"
+        },
+        "dust_bag": {
+          "$ref": "#/$defs/Consumable"
+        }
+      },
+      "title": "Consumables",
+      "type": "object"
+    },
+    "Device": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Stable UID, unique across the fleet",
+          "title": "Id",
+          "type": "string"
+        },
+        "vendor": {
+          "$ref": "#/$defs/Vendor",
+          "default": "unknown"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "firmware": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Firmware"
+        },
+        "capabilities": {
+          "items": {
+            "$ref": "#/$defs/Capability"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Device",
+      "type": "object"
+    },
+    "Fault": {
+      "additionalProperties": false,
+      "properties": {
+        "code_canonical": {
+          "$ref": "#/$defs/FaultCode",
+          "default": "unknown"
+        },
+        "code_vendor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code Vendor"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        }
+      },
+      "title": "Fault",
+      "type": "object"
+    },
+    "FaultCode": {
+      "enum": [
+        "stuck",
+        "brush_tangled",
+        "bin_full",
+        "water_empty",
+        "sensor_dirty",
+        "lidar_blocked",
+        "dock_lost",
+        "wheel_jammed",
+        "dirty_water_full",
+        "low_battery",
+        "unknown"
+      ],
+      "title": "FaultCode",
+      "type": "string"
+    },
+    "Session": {
+      "additionalProperties": false,
+      "description": "The active cleaning session, or the most recent completed one.",
+      "properties": {
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended At"
+        },
+        "duration_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration S"
+        },
+        "area_m2": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Area M2"
+        },
+        "segments": {
+          "description": "Room segment IDs",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Segments",
+          "type": "array"
+        },
+        "suction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Suction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "water_flow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WaterFlow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "completed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether the robot finished the run or gave up",
+          "title": "Completed"
+        }
+      },
+      "title": "Session",
+      "type": "object"
+    },
+    "State": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/Status",
+          "default": "unknown"
+        },
+        "battery_pct": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Battery Pct"
+        },
+        "is_charging": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Is Charging"
+        }
+      },
+      "title": "State",
+      "type": "object"
+    },
+    "Station": {
+      "additionalProperties": false,
+      "properties": {
+        "dust_collections": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dust Collections"
+        },
+        "mop_washes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mop Washes"
+        },
+        "water_tank_low": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Water Tank Low"
+        },
+        "dirty_water_full": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dirty Water Full"
+        }
+      },
+      "title": "Station",
+      "type": "object"
+    },
+    "Status": {
+      "enum": [
+        "idle",
+        "cleaning",
+        "mopping",
+        "paused",
+        "returning",
+        "docked",
+        "charging",
+        "emptying",
+        "washing",
+        "drying",
+        "error",
+        "unknown"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "Suction": {
+      "enum": [
+        "quiet",
+        "standard",
+        "strong",
+        "turbo"
+      ],
+      "title": "Suction",
+      "type": "string"
+    },
+    "Vendor": {
+      "enum": [
+        "dreame",
+        "roborock",
+        "ecovacs",
+        "irobot",
+        "xiaomi",
+        "unknown"
+      ],
+      "title": "Vendor",
+      "type": "string"
+    },
+    "WaterFlow": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "WaterFlow",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "device": {
+      "$ref": "#/$defs/Device"
+    },
+    "state": {
+      "$ref": "#/$defs/State"
+    },
+    "session": {
+      "$ref": "#/$defs/Session"
+    },
+    "consumables": {
+      "$ref": "#/$defs/Consumables"
+    },
+    "station": {
+      "$ref": "#/$defs/Station"
+    },
+    "fault": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Fault"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "raw": {
+      "additionalProperties": true,
+      "description": "Untouched source payload from the integration",
+      "title": "Raw",
+      "type": "object"
+    }
+  },
+  "required": [
+    "observed_at",
+    "device"
+  ],
+  "title": "VacuumTelemetry",
+  "type": "object"
+}

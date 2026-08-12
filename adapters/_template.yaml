@@ -1,0 +1,64 @@
+# Adapter template — copy this file to adapters/<integration_name>.yaml and fill it in.
+# See CONTRIBUTING.md for the full walkthrough, including how to dump your own vacuum's
+# attributes from Home Assistant's Developer Tools → States.
+#
+# Rules:
+#   - Map only fields your integration actually exposes. Leave the rest out entirely;
+#     an absent field becomes null, and null is honest. Zero is a lie.
+#   - Never invent a value to fill a gap.
+
+vendor: <dreame|roborock|ecovacs|irobot|xiaomi|unknown>
+integration: <home_assistant_integration_name>
+model: null  # optional fallback if the integration does not expose a model attribute
+
+# How to recognise an entity belonging to this integration. Every key must match.
+# `platform` is resolved from the HA entity registry by the source, not from attributes.
+matches:
+  platform: <home_assistant_integration_name>
+
+# Optional: hardware capabilities, if uniform across the vendor's supported models.
+# vacuum, mop, self_empty, mop_wash, mop_dry, lift, climb
+capabilities: []
+
+# canonical.path: <source path>
+# or
+# canonical.path: { path: <source path>, transform: <name> }
+#
+# Available transforms: min_to_s, h_to_s, s_to_min, cm2_to_m2, fraction_to_pct,
+#                       to_int, to_float, to_bool
+fields:
+  # device.model: attributes.model
+  # device.firmware: attributes.firmware_version
+
+  # state.battery_pct: attributes.battery_level
+  # state.is_charging: attributes.charging
+
+  # session.area_m2: attributes.total_cleaned_area
+  # session.duration_s: { path: attributes.cleaning_time, transform: min_to_s }
+
+  # consumables.main_brush.remaining_pct: attributes.main_brush_left
+  # consumables.side_brush.remaining_pct: attributes.side_brush_left
+  # consumables.filter.remaining_pct: attributes.filter_left
+  # consumables.mop_pad.remaining_pct: attributes.mop_pad_left
+  # consumables.sensors.remaining_pct: attributes.sensor_dirty_left
+  # consumables.dust_bag.remaining_pct: attributes.dust_bag_left
+
+  # station.dust_collections: attributes.dust_collection_count
+  # station.mop_washes: attributes.mop_wash_count
+  # station.water_tank_low: attributes.water_tank_low
+  # station.dirty_water_full: attributes.dirty_water_full
+
+  # fault.code_vendor: attributes.error
+  # fault.message: attributes.error_description
+
+# The entity's HA state string → canonical status.
+# Canonical: idle, cleaning, mopping, paused, returning, docked, charging,
+#            emptying, washing, drying, error
+state_map: {}
+
+# Vendor error code → canonical fault. Unmapped codes become `unknown`, and the raw
+# vendor code is preserved either way, so a partial map is fine. Map a code to `null`
+# to declare it as healthy (many integrations report 0 / "none" when nothing is wrong).
+# Canonical: stuck, brush_tangled, bin_full, water_empty, sensor_dirty, lidar_blocked,
+#            dock_lost, wheel_jammed, dirty_water_full, low_battery
+fault_map: {}

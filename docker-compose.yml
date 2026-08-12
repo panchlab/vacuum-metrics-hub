@@ -1,0 +1,63 @@
+services:
+  vmhub:
+    build: .
+    restart: unless-stopped
+    environment:
+      HA_WS_URL: ${HA_WS_URL}
+      HA_TOKEN: ${HA_TOKEN}
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: ${INFLUX_TOKEN}
+      INFLUX_ORG: ${INFLUX_ORG:-vmhub}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-vacuum}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "9464:9464"
+    volumes:
+      - ./adapters:/app/adapters:ro
+    depends_on:
+      - influxdb
+
+  influxdb:
+    image: influxdb:2.7
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USERNAME:-vmhub}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-vmhub}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-vacuum}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - vmhub
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  influxdb-data:
+  prometheus-data:
+  grafana-data:

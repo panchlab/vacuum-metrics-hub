@@ -1,0 +1,45 @@
+# Dreame, via the Tasshack/dreame-vacuum HACS integration.
+# Verified against a Dreame X50 Ultra on Home Assistant 2026.4.
+vendor: dreame
+integration: dreame_vacuum
+model: null  # per-device; filled from attributes when the integration exposes it
+
+# `platform` is resolved from the HA entity registry by the source, not from attributes.
+matches:
+  platform: dreame_vacuum
+
+capabilities: [vacuum, mop, self_empty, mop_wash, mop_dry, lift, climb]
+
+fields:
+  device.model: attributes.model
+  device.firmware: attributes.firmware_version
+
+  state.battery_pct: attributes.battery_level
+  state.is_charging: attributes.charging
+
+  session.area_m2: attributes.cleaned_area
+  session.duration_s: { path: attributes.cleaning_time, transform: min_to_s }
+
+  consumables.filter.remaining_pct: attributes.filter_left
+  consumables.main_brush.remaining_pct: attributes.main_brush_left
+  consumables.side_brush.remaining_pct: attributes.side_brush_left
+  consumables.sensors.remaining_pct: attributes.sensor_dirty_left
+
+  fault.code_vendor: attributes.error
+  fault.message: attributes.error_description
+
+state_map:
+  cleaning: cleaning
+  mopping: mopping
+  paused: paused
+  returning: returning
+  docked: docked
+  idle: idle
+  error: error
+
+# Vendor error codes. Extend as they are observed in the wild — unmapped codes fall
+# through to fault.code_canonical = unknown, and the raw code is always preserved.
+fault_map:
+  "0": null  # healthy
+  "6": stuck
+  "10": bin_full
