@@ -1,6 +1,6 @@
 # vacuum-metrics-hub
 
-[![ci](https://github.com/MrVlad001/vacuum-metrics-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/MrVlad001/vacuum-metrics-hub/actions/workflows/ci.yml)
+[![ci](https://github.com/panchlab/vacuum-metrics-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/panchlab/vacuum-metrics-hub/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
 

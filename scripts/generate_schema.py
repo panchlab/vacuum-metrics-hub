@@ -14,7 +14,7 @@ from vmhub.model.canonical import VacuumTelemetry
 
 SCHEMA_PATH = Path(__file__).parents[1] / "spec" / "vacuum-telemetry-v1.schema.json"
 SCHEMA_ID = (
-    "https://raw.githubusercontent.com/MrVlad001/vacuum-metrics-hub"
+    "https://raw.githubusercontent.com/panchlab/vacuum-metrics-hub"
     "/main/spec/vacuum-telemetry-v1.schema.json"
 )
 
